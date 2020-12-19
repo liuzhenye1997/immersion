@@ -1,4 +1,5 @@
-function alpha=best_step(points,faces,d,l_target)
+%求得最优步长，用于四次能量
+function alpha = best_step(points, faces, d, l_target)
 % coefficient=zeros(4,1);
 % for i=1:size(faces,1)
 %     for j=1:3
@@ -21,10 +22,10 @@ function alpha=best_step(points,faces,d,l_target)
 %         coefficient(4,1)=coefficient(4,1)+2*(2*(dxi - dxj)*(xi - xj) + 2*(dyi - dyj)*(yi - yj) + 2*(dzi - dzj)*(zi - zj))*((xi - xj)^2 - l + (yi - yj)^2 + (zi - zj)^2);
 %     end
 % end
-coefficient=best_step_c(points,faces,d,l_target);
-root=-roots(coefficient);
-root=real(root(imag(root)==0));
-alpha=min(root(root>0));
-if size(alpha,1)==0
-    alpha=0;
+coefficient = best_step_c(points, faces, d, l_target);
+root = -roots(coefficient);
+root = real(root(imag(root) == 0));
+alpha = min(root(root > 0));
+if size(alpha, 1) == 0
+    alpha = 0;
 end

@@ -1,5 +1,5 @@
-function H=hessian_matrix_sparse(points,faces,l_target)
-% 
+%求能量的hessian矩阵
+function H = hessian_matrix_sparse(points, faces, l_target)
 % point_number=size(points,1);
 % col=zeros(size(faces,1),3,36);
 % row=zeros(size(faces,1),3,36);
@@ -31,9 +31,9 @@ function H=hessian_matrix_sparse(points,faces,l_target)
 %         row(i,j,4)=yj_index;col(i,j,4)=yj_index;value(i,j,4)=4*(xi - xj)^2 + 4*(yi - yj)^2 + 4*(zi - zj)^2 + 2*(2*yi - 2*yj)^2 - 4*l^2;
 %         row(i,j,5)=zi_index;col(i,j,5)=zi_index;value(i,j,5)=4*(xi - xj)^2 + 4*(yi - yj)^2 + 4*(zi - zj)^2 + 2*(2*zi - 2*zj)^2 - 4*l^2;
 %         row(i,j,6)=zj_index;col(i,j,6)=zj_index;value(i,j,6)=4*(xi - xj)^2 + 4*(yi - yj)^2 + 4*(zi - zj)^2 + 2*(2*zi - 2*zj)^2 - 4*l^2;
-%        
-%         
-%         
+%
+%
+%
 % %         H(xi_index,yi_index)=H(xi_index,yi_index)+2*(2*xi - 2*xj)*(2*yi - 2*yj);
 % %         H(yi_index,xi_index)=H(yi_index,xi_index)+2*(2*xi - 2*xj)*(2*yi - 2*yj);
 % %         H(zi_index,xi_index)=H(zi_index,xi_index)+2*(2*xi - 2*xj)*(2*zi - 2*zj);
@@ -46,8 +46,8 @@ function H=hessian_matrix_sparse(points,faces,l_target)
 %         row(i,j,10)=xi_index;col(i,j,10)=zi_index;value(i,j,10)=2*(2*xi - 2*xj)*(2*zi - 2*zj);
 %         row(i,j,11)=yi_index;col(i,j,11)=zi_index;value(i,j,11)=2*(2*yi - 2*yj)*(2*zi - 2*zj);
 %         row(i,j,12)=zi_index;col(i,j,12)=yi_index;value(i,j,12)=2*(2*yi - 2*yj)*(2*zi - 2*zj);
-%         
-%         
+%
+%
 % %         H(xi_index,xj_index)=H(xi_index,xj_index)+4*l^2 - 4*(yi - yj)^2 - 4*(zi - zj)^2 - 2*(2*xi - 2*xj)^2 - 4*(xi - xj)^2;
 % %         H(xj_index,xi_index)=H(xj_index,xi_index)+4*l^2 - 4*(yi - yj)^2 - 4*(zi - zj)^2 - 2*(2*xi - 2*xj)^2 - 4*(xi - xj)^2;
 % %         H(yi_index,yj_index)=H(yi_index,yj_index)+4*l^2 - 4*(yi - yj)^2 - 4*(zi - zj)^2 - 2*(2*yi - 2*yj)^2 - 4*(xi - xj)^2;
@@ -60,7 +60,7 @@ function H=hessian_matrix_sparse(points,faces,l_target)
 %         row(i,j,16)=yj_index;col(i,j,16)=yi_index;value(i,j,16)=4*l^2 - 4*(yi - yj)^2 - 4*(zi - zj)^2 - 2*(2*yi - 2*yj)^2 - 4*(xi - xj)^2;
 %         row(i,j,17)=zi_index;col(i,j,17)=zj_index;value(i,j,17)=4*l^2 - 4*(yi - yj)^2 - 4*(zi - zj)^2 - 2*(2*zi - 2*zj)^2 - 4*(xi - xj)^2;
 %         row(i,j,18)=zj_index;col(i,j,18)=zi_index;value(i,j,18)=4*l^2 - 4*(yi - yj)^2 - 4*(zi - zj)^2 - 2*(2*zi - 2*zj)^2 - 4*(xi - xj)^2;
-%         
+%
 % %         H(xi_index,yj_index)=H(xi_index,yj_index)-2*(2*xi - 2*xj)*(2*yi - 2*yj);
 % %         H(yj_index,xi_index)=H(yj_index,xi_index)-2*(2*xi - 2*xj)*(2*yi - 2*yj);
 % %         H(zj_index,xi_index)=H(zj_index,xi_index)-2*(2*xi - 2*xj)*(2*zi - 2*zj);
@@ -69,7 +69,7 @@ function H=hessian_matrix_sparse(points,faces,l_target)
 %         row(i,j,20)=yj_index;col(i,j,20)=xi_index;value(i,j,20)=-2*(2*xi - 2*xj)*(2*yi - 2*yj);
 %         row(i,j,21)=zj_index;col(i,j,21)=xi_index;value(i,j,21)=-2*(2*xi - 2*xj)*(2*zi - 2*zj);
 %         row(i,j,22)=xi_index;col(i,j,22)=zj_index;value(i,j,22)=-2*(2*xi - 2*xj)*(2*zi - 2*zj);
-%     
+%
 % %         H(yi_index,xj_index)=H(yi_index,xj_index)-2*(2*xi - 2*xj)*(2*yi - 2*yj);
 % %         H(xj_index,yi_index)=H(xj_index,yi_index)-2*(2*xi - 2*xj)*(2*yi - 2*yj);
 % %         H(yi_index,zj_index)=H(yi_index,zj_index)-2*(2*yi - 2*yj)*(2*zi - 2*zj);
@@ -78,8 +78,8 @@ function H=hessian_matrix_sparse(points,faces,l_target)
 %         row(i,j,24)=xj_index;col(i,j,24)=yi_index;value(i,j,24)=-2*(2*xi - 2*xj)*(2*yi - 2*yj);
 %         row(i,j,25)=yi_index;col(i,j,25)=zj_index;value(i,j,25)=-2*(2*yi - 2*yj)*(2*zi - 2*zj);
 %         row(i,j,26)=zj_index;col(i,j,26)=yi_index;value(i,j,26)=-2*(2*yi - 2*yj)*(2*zi - 2*zj);
-%         
-%         
+%
+%
 % %         H(xj_index,zi_index)=H(xj_index,zi_index)-2*(2*xi - 2*xj)*(2*zi - 2*zj);
 % %         H(zi_index,xj_index)=H(zi_index,xj_index)-2*(2*xi - 2*xj)*(2*zi - 2*zj);
 % %         H(yj_index,zi_index)=H(yj_index,zi_index)-2*(2*yi - 2*yj)*(2*zi - 2*zj);
@@ -88,7 +88,7 @@ function H=hessian_matrix_sparse(points,faces,l_target)
 %         row(i,j,28)=zi_index;col(i,j,28)=xj_index;value(i,j,28)=-2*(2*xi - 2*xj)*(2*zi - 2*zj);
 %         row(i,j,29)=yj_index;col(i,j,29)=zi_index;value(i,j,29)=-2*(2*yi - 2*yj)*(2*zi - 2*zj);
 %         row(i,j,30)=zi_index;col(i,j,30)=yj_index;value(i,j,30)=-2*(2*yi - 2*yj)*(2*zi - 2*zj);
-%         
+%
 % %         H(xj_index,yj_index)=H(xj_index,yj_index)+2*(2*xi - 2*xj)*(2*yi - 2*yj);
 % %         H(yj_index,xj_index)=H(yj_index,xj_index)+2*(2*xi - 2*xj)*(2*yi - 2*yj);
 % %         H(xj_index,zj_index)=H(xj_index,zj_index)+2*(2*xi - 2*xj)*(2*zi - 2*zj);
@@ -105,6 +105,4 @@ function H=hessian_matrix_sparse(points,faces,l_target)
 % end
 % [row,col,value]=hessian_matrix_triplet(points,faces,l_target);
 % H=sparse(row(:),col(:),value(:));
-[~,~,~,H]=hessian_matrix_sparse_c(points,faces,l_target);
-
-
+[~, ~, ~, H] = hessian_matrix_sparse_c(points, faces, l_target);

@@ -1,4 +1,5 @@
-function new_points=LSCM(length,faces)
+%LSCM²ÎÊý»¯
+function new_points=LSCM_sparse(length,faces)
     xy=zeros(size(faces,1),6);
     for i=1:size(faces,1)
         theta=acos((length(i,1).^2+length(i,3).^2-length(i,2).^2)/(2*length(i,1)*length(i,3)));

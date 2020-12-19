@@ -8,7 +8,6 @@ using namespace std;
 using namespace Eigen;
 
 
-//非负数返回1，否则返回-1
 double sign(double x)
 {
 	if (x >= 0)
@@ -21,11 +20,12 @@ double sign(double x)
 	}
 }
 
+
 //之前讨论的两种将矩阵正定化的方法。这里对LP包括L2能量(energy_typr=5,6)使用的是第二种正定化方法。
 //即设A=[B -B
 //		-B B].
-//则令C=B+I为半正定阵，则令A1=[C -C
-//							  -C  C]也为半正定阵。
+//则令C=B+I为半正定阵，则令A1=[B+2I -B
+//								-B	B+2I]也为半正定阵。
 void hessian_matrix_value(const int face_number, const int point_number, const double * points, const double * faces, const double * l_target, double *value, int energy_type = 0, double p = 2)
 {
 	int k, l;
@@ -510,47 +510,26 @@ void hessian_matrix_value(const int face_number, const int point_number, const d
 				double lambda = (norm - l) / norm * 2;
 				double weight = 1.0 / (l*l);
 
-				value[i * 108 + j * 36] = 4 * (xi - xj)*(xi - xj) / (2 * (norm*norm)) - (2 * (l - norm)) / norm + (4 * (xi - xj)*(xi - xj) * (l - norm)) / (2 * norm*norm*norm) + (lambda < 0)*abs(lambda)*(1 - x * x);
-				value[i * 108 + j * 36 + 1] = 4 * (yi - yj)*(yi - yj) / (2 * (norm*norm)) - (2 * (l - norm)) / norm + (4 * (yi - yj)*(yi - yj) * (l - norm)) / (2 * norm*norm*norm) + (lambda < 0)*abs(lambda)*(1 - y * y);
-				value[i * 108 + j * 36 + 2] = 4 * (zi - zj)*(zi - zj) / (2 * (norm*norm)) - (2 * (l - norm)) / norm + (4 * (zi - zj)*(zi - zj) * (l - norm)) / (2 * norm*norm*norm) + (lambda < 0)*abs(lambda)*(1 - z * z);
-				value[i * 108 + j * 36 + 3] = ((2 * xi - 2 * xj)*(2 * yi - 2 * yj)) / (2 * (norm*norm)) + ((2 * xi - 2 * xj)*(2 * yi - 2 * yj)*(l - norm)) / (2 * norm*norm*norm) - (lambda < 0)*abs(lambda)*x*y;
-				value[i * 108 + j * 36 + 4] = ((2 * xi - 2 * xj)*(2 * zi - 2 * zj)) / (2 * (norm*norm)) + ((2 * xi - 2 * xj)*(2 * zi - 2 * zj)*(l - norm)) / (2 * norm*norm*norm) - (lambda < 0)*abs(lambda)*x*z;
-				value[i * 108 + j * 36 + 5] = ((2 * yi - 2 * yj)*(2 * zi - 2 * zj)) / (2 * (norm*norm)) + ((2 * yi - 2 * yj)*(2 * zi - 2 * zj)*(l - norm)) / (2 * norm*norm*norm) - (lambda < 0)*abs(lambda)*z*y;
+				value[i * 108 + j * 36] = 4 * (xi - xj)*(xi - xj) / (2 * (norm*norm)) - (2 * (l - norm)) / norm + (4 * (xi - xj)*(xi - xj) * (l - norm)) / (2 * norm*norm*norm) + 2 * (lambda < 0)*abs(lambda)*(1 - x * x);
+				value[i * 108 + j * 36 + 1] = 4 * (yi - yj)*(yi - yj) / (2 * (norm*norm)) - (2 * (l - norm)) / norm + (4 * (yi - yj)*(yi - yj) * (l - norm)) / (2 * norm*norm*norm) + 2 * (lambda < 0)*abs(lambda)*(1 - y * y);
+				value[i * 108 + j * 36 + 2] = 4 * (zi - zj)*(zi - zj) / (2 * (norm*norm)) - (2 * (l - norm)) / norm + (4 * (zi - zj)*(zi - zj) * (l - norm)) / (2 * norm*norm*norm) + 2 * (lambda < 0)*abs(lambda)*(1 - z * z);
+				value[i * 108 + j * 36 + 3] = ((2 * xi - 2 * xj)*(2 * yi - 2 * yj)) / (2 * (norm*norm)) + ((2 * xi - 2 * xj)*(2 * yi - 2 * yj)*(l - norm)) / (2 * norm*norm*norm) - 2 * (lambda < 0)*abs(lambda)*x*y;
+				value[i * 108 + j * 36 + 4] = ((2 * xi - 2 * xj)*(2 * zi - 2 * zj)) / (2 * (norm*norm)) + ((2 * xi - 2 * xj)*(2 * zi - 2 * zj)*(l - norm)) / (2 * norm*norm*norm) - 2 * (lambda < 0)*abs(lambda)*x*z;
+				value[i * 108 + j * 36 + 5] = ((2 * yi - 2 * yj)*(2 * zi - 2 * zj)) / (2 * (norm*norm)) + ((2 * yi - 2 * yj)*(2 * zi - 2 * zj)*(l - norm)) / (2 * norm*norm*norm) - 2 * (lambda < 0)*abs(lambda)*z*y;
 				memcpy(value + i * 108 + j * 36 + 6, value + i * 108 + j * 36 + 3, 3 * sizeof(double));
-				//value[i * 108 + j * 36 + 6] = -2 * x * y*(ld < 0)*abs(ld) + 2 * (2 * xi - 2 * xj)*(2 * yi - 2 * yj) + 2 * (ld2 < 0)*abs(ld2)*x*y;
-			   //value[i * 108 + j * 36 + 9] = -2 * z * x*(ld < 0)*abs(ld) + 2 * (2 * xi - 2 * xj)*(2 * zi - 2 * zj) + 2 * (ld2 < 0)*abs(ld2)*x*z;
-				// value[i * 108 + j * 36 + 10] = -2 * z * y*(ld < 0)*abs(ld) + 2 * (2 * yi - 2 * yj)*(2 * zi - 2 * zj) + 2 * (ld2 < 0)*abs(ld2)*z*y;
 				memcpy(value + i * 108 + j * 36 + 9, value + i * 108 + j * 36, 9 * sizeof(double));
-				//value[i * 108 + j * 36 + 1] = ld + 2*(ld < 0)*abs(ld)*(y*y + z*z) + 2 * pow(2 * xi - 2 * xj, 2.0) + 2 * (ld2 < 0)*abs(ld2)*x*x;			
-				//value[i * 108 + j * 36 + 3] = ld + 2 * (ld < 0)*abs(ld)*(x*x + z*z) + 2 * pow(2 * yi - 2 * yj, 2.0)+2 * (ld2 < 0)*abs(ld2)*y*y;	
-				// value[i * 108 + j * 36 + 5] = ld + 2 * (ld < 0)*abs(ld)*(y*y + x*x) + 2 * pow(2 * zi - 2 * zj, 2.0) + 2 * (ld2 < 0)*abs(ld2)*z *z;
-				 //value[i * 108 + j * 36 + 31] = -2 * y * x*(ld < 0)*abs(ld) + 2 * (2 * xi - 2 * xj)*(2 * yi - 2 * yj) + 2 * (ld2 < 0)*abs(ld2)*x*y;
-				 //value[i * 108 + j * 36 + 33] = -2 * z * x*(ld < 0)*abs(ld) + 2 * (2 * xi - 2 * xj)*(2 * zi - 2 * zj) + 2 * (ld2 < 0)*abs(ld2)*x*z;
-				 //value[i * 108 + j * 36 + 34] = -2 * y * z*(ld < 0)*abs(ld) + 2 * (2 * yi - 2 * yj)*(2 * zi - 2 * zj) + 2 * (ld2 < 0)*abs(ld2)*z*y;
-				 //value[i * 108 + j * 36 + 30] = -2 * y * x*(ld < 0)*abs(ld) + 2 * (2 * xi - 2 * xj)*(2 * yi - 2 * yj) + 2 * (ld2 < 0)*abs(ld2)*x*y;
-				 //value[i * 108 + j * 36 + 32] = -2 * z * x*(ld < 0)*abs(ld) + 2 * (2 * xi - 2 * xj)*(2 * zi - 2 * zj) + 2 * (ld2 < 0)*abs(ld2)*x*z;			
-				 //value[i * 108 + j * 36 + 35] = -2 * y * z*(ld < 0)*abs(ld) + 2 * (2 * yi - 2 * yj)*(2 * zi - 2 * zj) + 2 * (ld2 < 0)*abs(ld2)*z*y;
 
-				value[i * 108 + j * 36 + 18] = (2 * (l - norm)) / norm - 4 * (xi - xj)*(xi - xj) / (2 * (norm*norm)) - (4 * (xi - xj)*(xi - xj) * (l - norm)) / (2 * norm*norm*norm) - (lambda < 0)*abs(lambda)*(1 - x * x);
-				value[i * 108 + j * 36 + 19] = (2 * (l - norm)) / norm - 4 * (yi - yj)*(yi - yj) / (2 * (norm*norm)) - (4 * (yi - yj)*(yi - yj) * (l - norm)) / (2 * norm*norm*norm) - (lambda < 0)*abs(lambda)*(1 - y * y);
-				value[i * 108 + j * 36 + 20] = (2 * (l - norm)) / norm - 4 * (zi - zj)*(zi - zj) / (2 * (norm*norm)) - (4 * (zi - zj)*(zi - zj) * (l - norm)) / (2 * norm*norm*norm) - (lambda < 0)*abs(lambda)*(1 - z * z);
-				value[i * 108 + j * 36 + 21] = -((2 * xi - 2 * xj)*(2 * yi - 2 * yj)) / (2 * (norm*norm)) - ((2 * xi - 2 * xj)*(2 * yi - 2 * yj)*(l - norm)) / (2 * norm*norm*norm) + (lambda < 0)*abs(lambda)*x*y;
-				value[i * 108 + j * 36 + 22] = -((2 * xi - 2 * xj)*(2 * zi - 2 * zj)) / (2 * (norm*norm)) - ((2 * xi - 2 * xj)*(2 * zi - 2 * zj)*(l - norm)) / (2 * norm*norm*norm) + (lambda < 0)*abs(lambda)*x*z;
-				value[i * 108 + j * 36 + 23] = -((2 * yi - 2 * yj)*(2 * zi - 2 * zj)) / (2 * (norm*norm)) - ((2 * yi - 2 * yj)*(2 * zi - 2 * zj)*(l - norm)) / (2 * norm*norm*norm) + (lambda < 0)*abs(lambda)*z*y;
+
+				value[i * 108 + j * 36 + 18] = (2 * (l - norm)) / norm - 4 * (xi - xj)*(xi - xj) / (2 * (norm*norm)) - (4 * (xi - xj)*(xi - xj) * (l - norm)) / (2 * norm*norm*norm);
+				value[i * 108 + j * 36 + 19] = (2 * (l - norm)) / norm - 4 * (yi - yj)*(yi - yj) / (2 * (norm*norm)) - (4 * (yi - yj)*(yi - yj) * (l - norm)) / (2 * norm*norm*norm);
+				value[i * 108 + j * 36 + 20] = (2 * (l - norm)) / norm - 4 * (zi - zj)*(zi - zj) / (2 * (norm*norm)) - (4 * (zi - zj)*(zi - zj) * (l - norm)) / (2 * norm*norm*norm);
+				value[i * 108 + j * 36 + 21] = -((2 * xi - 2 * xj)*(2 * yi - 2 * yj)) / (2 * (norm*norm)) - ((2 * xi - 2 * xj)*(2 * yi - 2 * yj)*(l - norm)) / (2 * norm*norm*norm);
+				value[i * 108 + j * 36 + 22] = -((2 * xi - 2 * xj)*(2 * zi - 2 * zj)) / (2 * (norm*norm)) - ((2 * xi - 2 * xj)*(2 * zi - 2 * zj)*(l - norm)) / (2 * norm*norm*norm);
+				value[i * 108 + j * 36 + 23] = -((2 * yi - 2 * yj)*(2 * zi - 2 * zj)) / (2 * (norm*norm)) - ((2 * yi - 2 * yj)*(2 * zi - 2 * zj)*(l - norm)) / (2 * norm*norm*norm);
 				memcpy(value + i * 108 + j * 36 + 24, value + i * 108 + j * 36 + 21, 3 * sizeof(double));
-				//value[i * 108 + j * 36 + 18] = -2 * (2 * xi - 2 * xj)*(2 * yi - 2 * yj);
-				//value[i * 108 + j * 36 + 21] = -2 * (2 * xi - 2 * xj)*(2 * zi - 2 * zj);
-				//value[i * 108 + j * 36 + 24] = -2 * (2 * yi - 2 * yj)*(2 * zi - 2 * zj);
 				memcpy(value + i * 108 + j * 36 + 27, value + i * 108 + j * 36 + 18, 9 * sizeof(double));
-				//value[i * 108 + j * 36 + 13] = -ld - 2 * pow(2 * xi - 2 * xj, 2);			
-				//value[i * 108 + j * 36 + 15] = -ld - 2 * pow(2 * yi - 2 * yj, 2);			
-				//value[i * 108 + j * 36 + 17] = -ld - 2 * pow(2 * zi - 2 * zj, 2);
-				//value[i * 108 + j * 36 + 19] = -2 * (2 * xi - 2 * xj)*(2 * yi - 2 * yj);
-				//value[i * 108 + j * 36 + 20] = -2 * (2 * xi - 2 * xj)*(2 * zi - 2 * zj);
-				//value[i * 108 + j * 36 + 25] = -2 * (2 * yi - 2 * yj)*(2 * zi - 2 * zj);											
-				//value[i * 108 + j * 36 + 23] = -2 * (2 * xi - 2 * xj)*(2 * yi - 2 * yj);						
-				//value[i * 108 + j * 36 + 26] = -2 * (2 * xi - 2 * xj)*(2 * zi - 2 * zj);			
-				//value[i * 108 + j * 36 + 28] = -2 * (2 * yi - 2 * yj)*(2 * zi - 2 * zj);
+
+
 
 				for (int k = 0; k < 36; k++)
 				{
@@ -596,9 +575,9 @@ void hessian_matrix_value(const int face_number, const int point_number, const d
 				double weight = 1.0 / (pow(l, p));
 				double ld = pow(norm - l, p - 2);
 
-				value[i * 108 + j * 36] = p * ld / norm * (norm - l + (xi - xj)*(xi - xj) / norm * (p - 1) - (norm - l) / (norm*norm)*(xi - xj)*(xi - xj)) + (lambda < 0)*abs(lambda)*(1 - x * x);
-				value[i * 108 + j * 36 + 1] = p * ld / norm * (norm - l + (yi - yj)*(yi - yj) / norm * (p - 1) - (norm - l) / (norm*norm)*(yi - yj)*(yi - yj)) + +(lambda < 0)*abs(lambda)*(1 - y * y);
-				value[i * 108 + j * 36 + 2] = p * ld / norm * (norm - l + (zi - zj)*(zi - zj) / norm * (p - 1) - (norm - l) / (norm*norm)*(zi - zj)*(zi - zj)) + +(lambda < 0)*abs(lambda)*(1 - z * z);
+				value[i * 108 + j * 36] = p * ld / norm * (norm - l + (xi - xj)*(xi - xj) / norm * (p - 1) - (norm - l) / (norm*norm)*(xi - xj)*(xi - xj)) + 2 * (lambda < 0)*abs(lambda)*(1 - x * x);
+				value[i * 108 + j * 36 + 1] = p * ld / norm * (norm - l + (yi - yj)*(yi - yj) / norm * (p - 1) - (norm - l) / (norm*norm)*(yi - yj)*(yi - yj)) + 2 * (lambda < 0)*abs(lambda)*(1 - y * y);
+				value[i * 108 + j * 36 + 2] = p * ld / norm * (norm - l + (zi - zj)*(zi - zj) / norm * (p - 1) - (norm - l) / (norm*norm)*(zi - zj)*(zi - zj)) + 2 * (lambda < 0)*abs(lambda)*(1 - z * z);
 				value[i * 108 + j * 36 + 3] = p * (p - 1)*(xi - xj)*(yi - yj)*ld / (norm*norm) - p * (xi - xj)*(yi - yj)*ld*(norm - l) / (norm*norm*norm) - (lambda < 0)*abs(lambda)*x*y;
 				value[i * 108 + j * 36 + 4] = p * (p - 1)*(xi - xj)*(zi - zj)*ld / (norm*norm) - p * (xi - xj)*(zi - zj)*ld*(norm - l) / (norm*norm*norm) - (lambda < 0)*abs(lambda)*x*z;
 				value[i * 108 + j * 36 + 5] = p * (p - 1)*(zi - zj)*(yi - yj)*ld / (norm*norm) - p * (zi - zj)*(yi - yj)*ld*(norm - l) / (norm*norm*norm) - (lambda < 0)*abs(lambda)*z*y;
@@ -606,12 +585,12 @@ void hessian_matrix_value(const int face_number, const int point_number, const d
 				memcpy(value + i * 108 + j * 36 + 9, value + i * 108 + j * 36, 9 * sizeof(double));
 
 
-				value[i * 108 + j * 36 + 18] = -value[i * 108 + j * 36];
-				value[i * 108 + j * 36 + 19] = -value[i * 108 + j * 36 + 1];
-				value[i * 108 + j * 36 + 20] = -value[i * 108 + j * 36 + 2];
-				value[i * 108 + j * 36 + 21] = -value[i * 108 + j * 36 + 3];
-				value[i * 108 + j * 36 + 22] = -value[i * 108 + j * 36 + 4];
-				value[i * 108 + j * 36 + 23] = -value[i * 108 + j * 36 + 5];
+				value[i * 108 + j * 36 + 18] = -(p * ld / norm * (norm - l + (xi - xj)*(xi - xj) / norm * (p - 1) - (norm - l) / (norm*norm)*(xi - xj)*(xi - xj)));
+				value[i * 108 + j * 36 + 19] = -(p * ld / norm * (norm - l + (yi - yj)*(yi - yj) / norm * (p - 1) - (norm - l) / (norm*norm)*(yi - yj)*(yi - yj)));
+				value[i * 108 + j * 36 + 20] = -(p * ld / norm * (norm - l + (zi - zj)*(zi - zj) / norm * (p - 1) - (norm - l) / (norm*norm)*(zi - zj)*(zi - zj)));
+				value[i * 108 + j * 36 + 21] = -(p * (p - 1)*(xi - xj)*(yi - yj)*ld / (norm*norm) - p * (xi - xj)*(yi - yj)*ld*(norm - l) / (norm*norm*norm));
+				value[i * 108 + j * 36 + 22] = -(p * (p - 1)*(xi - xj)*(zi - zj)*ld / (norm*norm) - p * (xi - xj)*(zi - zj)*ld*(norm - l) / (norm*norm*norm));
+				value[i * 108 + j * 36 + 23] = -(p * (p - 1)*(zi - zj)*(yi - yj)*ld / (norm*norm) - p * (zi - zj)*(yi - yj)*ld*(norm - l) / (norm*norm*norm));
 				memcpy(value + i * 108 + j * 36 + 24, value + i * 108 + j * 36 + 21, 3 * sizeof(double));
 				memcpy(value + i * 108 + j * 36 + 27, value + i * 108 + j * 36 + 18, 9 * sizeof(double));
 
