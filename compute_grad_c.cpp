@@ -19,7 +19,7 @@ double sign(double x)
 }
 
 //计算各种能量的梯度
-void compute_grad(const int face_number, const int point_number, const double * points_temp, const double * faces, const double * l_target, double * l_temp, double *grad, int energy_type = 1, double p = 2)
+void compute_grad(const int face_number, const int point_number, const double * points_temp, const double * faces, const double * l_target, double * l_temp, double *grad, int energy_type = 1, double p = 2,double w=0, double *initial_points=nullptr)
 {
 	//四次能量
 	if (energy_type == 1)
@@ -33,8 +33,8 @@ void compute_grad(const int face_number, const int point_number, const double * 
 				{
 					int ij = faces[i + j * face_number] - 1;
 					int ij1 = faces[i + (j + 1) % 3 * face_number] - 1;
-					grad[ij + k * point_number] = grad[ij + k * point_number] + 2 * (pow(l_temp[i + j * face_number], 2) - pow(l_target[i + j * face_number], 2))*(points_temp[ij + k * point_number] - points_temp[ij1 + k * point_number]);
-					grad[ij1 + k * point_number] = grad[ij1 + k * point_number] - 2 * (pow(l_temp[i + j * face_number], 2) - pow(l_target[i + j * face_number], 2))*(points_temp[ij + k * point_number] - points_temp[ij1 + k * point_number]);
+					grad[ij + k * point_number] = grad[ij + k * point_number] + 4 * (pow(l_temp[i + j * face_number], 2) - pow(l_target[i + j * face_number], 2))*(points_temp[ij + k * point_number] - points_temp[ij1 + k * point_number]);
+					grad[ij1 + k * point_number] = grad[ij1 + k * point_number] - 4 * (pow(l_temp[i + j * face_number], 2) - pow(l_target[i + j * face_number], 2))*(points_temp[ij + k * point_number] - points_temp[ij1 + k * point_number]);
 				}
 			}
 		}
@@ -126,6 +126,24 @@ void compute_grad(const int face_number, const int point_number, const double * 
 			}
 		}
 	}
+	else if (energy_type == 7)
+	{
+	#pragma omp parallel for 
+		for (int k = 0; k < 3; k++)
+		{
+			for (int i = 0; i < face_number; i++)
+			{
+				for (int j = 0; j < 3; j++)
+				{
+					int ij = faces[i + j * face_number] - 1;
+					int ij1 = faces[i + (j + 1) % 3 * face_number] - 1;
+					grad[ij + k * point_number] = grad[ij + k * point_number] + 4 * (pow(l_temp[i + j * face_number], 2) - pow(l_target[i + j * face_number], 2) )*(points_temp[ij + k * point_number] - points_temp[ij1 + k * point_number])+w/12.0*(points_temp[ij + k * point_number]-initial_points[ij + k * point_number]);
+					grad[ij1 + k * point_number] = grad[ij1 + k * point_number] - 4 * (pow(l_temp[i + j * face_number], 2) - pow(l_target[i + j * face_number], 2) )*(points_temp[ij + k * point_number] - points_temp[ij1 + k * point_number]) + w / 12.0*(points_temp[ij1 + k * point_number] - initial_points[ij1 + k * point_number]);
+				}
+			}
+		}
+	}
+
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
@@ -136,16 +154,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if (nlhs != 1) {
 		mexErrMsgTxt("One output required.");
 	}
-	else if (nrhs != 4 && nrhs != 5 && nrhs != 6) {
+	else if (nrhs != 4 && nrhs != 5 && nrhs != 6 && nrhs != 8) {
 		mexErrMsgTxt("Four or five or six input required.");
 	}
 	int energy_type;
 	if (nrhs != 4)
 	{
 		energy_type = int(mxGetScalar(prhs[4]));
-		if (energy_type != 0 && energy_type != 1 && energy_type != 2 && energy_type != 3 && energy_type != 4 && energy_type != 5 && energy_type != 6)
+		if (energy_type != 0 && energy_type != 1 && energy_type != 2 && energy_type != 3 && energy_type != 4 && energy_type != 5 && energy_type != 6 && energy_type != 7 && energy_type != 8)
 		{
-			mexErrMsgTxt("energ_type必须等于0,1,2,3,4,5或6");
+			mexErrMsgTxt("energ_type必须等于0,1,2,3,4,5,6,7或8");
 		}
 	}
 
@@ -177,11 +195,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	{
 		compute_grad(face_number, point_number, points, faces, l_target, l_temp, grad);
 	}
-	else
+	else if (nrhs==6)
 	{
 		int energy_type = int(mxGetScalar(prhs[4]));
 		double p = int(mxGetScalar(prhs[5]));
 		compute_grad(face_number, point_number, points, faces, l_target, l_temp, grad, energy_type, p);
+	}
+	else if (nrhs == 8)
+	{
+		int energy_type = int(mxGetScalar(prhs[4]));
+		double p = int(mxGetScalar(prhs[5]));
+		double w = double(mxGetScalar(prhs[6]));
+		/*mexPrintf("%lf\t%lf\n",p,w);*/
+		double *initial_points = mxGetPr(prhs[7]);
+		compute_grad(face_number, point_number, points, faces, l_target, l_temp, grad, energy_type, p,w, initial_points);
 	}
 
 }
